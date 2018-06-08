@@ -65,6 +65,7 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+import json
 
 # ===========================================
 # Module execution.
@@ -73,53 +74,66 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 
 def main():
 
-    module = AnsibleModule(
-        argument_spec=dict(
-            tenant_url=dict(required=True),
-            api_token=dict(required=True),
-            entity_id=dict(required=True),
-            deploymentVersion=dict(required=False),
-            remediationAction=dict(required=False),
-            validate_certs=dict(default='yes', type='bool'),
-        ),
-        # required_one_of=[['app_name', 'application_id']],
-        supports_check_mode=True
-    )
+  module = AnsibleModule(
+      argument_spec=dict(
+          tenant_url=dict(required=True),
+          api_token=dict(required=True),
+          entity_id=dict(required=True),
+          deploymentVersion=dict(required=False),
+          remediationAction=dict(required=False),
+          validate_certs=dict(default='yes', type='bool'),
+      ),
+      # required_one_of=[['app_name', 'application_id']],
+      supports_check_mode=True
+  )
 
     # build list of params
-    params = {}
-    # if module.params["entity_id"]:
-    #     params["entity_id"] = module.params["entity_id"]
-    # else:
-    #     module.fail_json(msg="entity_id must be set")
+  params = {}
+  # if module.params["entity_id"]:
+  #   params["entity_id"] = module.params["entity_id"]
+  # else:
+  #   module.fail_json(msg="entity_id must be set")
 
-    for item in ["deploymentVersion", "remediationAction"]:
-        if module.params[item]:
-            params[item] = module.params[item]
+  for item in ["deploymentVersion", "remediationAction"]:
+    if module.params[item]:
+      params[item] = module.params[item]
 
-    params["eventType"] = "CUSTOM_DEPLOYMENT"
-    #params["attachRules"] = TODO
-    params["deploymentName"] = "Update"
-    params["deploymentProject"] = "My Project"
-    params["source"] = "Ansible"
-    #params["customProperies"] = TODO if needed
+  attachRules = {}
+  attachRules["entityIds"] = module.params["entity_id"]
+  params["eventType"] = "CUSTOM_DEPLOYMENT"
+  params["attachRules"] = attachRules
+  params["deploymentName"] = "Update"
+  params["deploymentProject"] = "My Project"
+  params["source"] = "Ansible"
+  #params["customProperies"] = TODO if needed
 
-    # If we're in check mode, just exit pretending like we succeeded
-    if module.check_mode:
-        module.exit_json(changed=True)
+	
 
-    # Send the deployment info to Dynatrace
-    dt_url = "https://" + module.params["tenant_url"] + "/api/v1/events/?Api-Token=" + module.params["api_token"]
-    data = urlencode(params)
-    # headers = {
-    #     'x-api-key': module.params["token"],
-    # }
-    response, info = fetch_url(module, dt_url, data=data, headers=headers)
+  # If we're in check mode, just exit pretending like we succeeded
+  if module.check_mode:
+    module.exit_json(changed=True)
+
+  # Send the deployment info to Dynatrace
+  dt_url = module.params["tenant_url"] + "/api/v1/events/?Api-Token=" + module.params["api_token"]
+  #data = urlencode(params)
+  headers = {
+    'Content-Type': 'application/json'
+  }
+  
+  #module.fail_json(msg=json.dumps(params))
+
+  try:
+    response, info = fetch_url(module, dt_url, data=json.dumps(params), headers=headers)
+    
     if info['status'] in (200, 201):
-        module.exit_json(changed=True)
+      module.exit_json(changed=True,meta=info)
+    elif info['status'] == 401:
+      module.fail_json(msg="Token Authentification failed.")
     else:
-        module.fail_json(msg="unable to send deployment event to Dynatrace: %s" % info['msg'])
-
+      module.fail_json(msg="Unable to send deployment event to Dynatrace: %s" % info)
+  except:
+    e = get_exception()
+    module.fail_json(msg="Failure:")
 
 if __name__ == '__main__':
     main()
