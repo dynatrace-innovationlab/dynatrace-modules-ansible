@@ -15,9 +15,11 @@ play.yml
 
 Put Dynatrace module in a library folder and a ```play.yml``` in the parent folder.
 Then start the sample ```play.yml``` from the bash. This will automatically load the modules from the ```library``` folder.
+Add ```-v``` or ```-vvv``` for verbose debugging output.
 
 ```
 $ ansible-playbook play.yml
 ```
+
 
 

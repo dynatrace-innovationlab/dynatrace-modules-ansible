@@ -30,10 +30,18 @@ options:
     description:
       - Dynatrace API Token
     required: true
-  entity_id:
+  attach_rules:
     description:
-      - Entity Id of the affected entities for this deployment
+      - Attach rules A complex structure that contains attachment rules that define which monitored entities the event is to be attached to.
     required: true
+  entity_ids:
+    description:
+      - Entity Ids of the affected entities for this deployment
+    required: false
+  deploymentName:
+    required: true
+  deploymentProject:
+    required: false
   deploymentVersion:
     description:
       - A deployment version number
@@ -50,13 +58,15 @@ EXAMPLES = '''
 - dynatrace_deployment:
     tenant_url: https://mytenant.live.dynatrace.com
     api_token: XXXXXXXX
-    entity_id: ENTITLY_TYPE-ENTITY_ID
+    attach_rules:
+      entity_ids: ENTITY_TYPE-ENTITY_ID
     deploymentVersion: '2.0'
 '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+import ast
 import json
 
 # ===========================================
@@ -70,8 +80,12 @@ def main():
       argument_spec=dict(
           tenant_url=dict(required=True),
           api_token=dict(required=True),
-          entity_id=dict(required=True),
-          deploymentVersion=dict(required=False),
+          attach_rules=dict(required=True),
+          #entity_ids=dict(required=False),
+          deploymentVersion=dict(required=True),
+          deploymentName=dict(required=True),
+          deploymentProject=dict(required=False),
+          source=dict(required=False),
           remediationAction=dict(required=False)
       ),
       # required_one_of=[['app_name', 'application_id']],
@@ -80,35 +94,62 @@ def main():
 
     # build list of params
   params = {}
-  # if module.params["entity_id"]:
-  #   params["entity_id"] = module.params["entity_id"]
+  # if module.params["entity_ids"]:
+  #   params["entity_ids"] = module.params["entity_ids"]
   # else:
-  #   module.fail_json(msg="entity_id must be set")
+  #   module.fail_json(msg="entity_ids must be set")
 
-  for item in ["deploymentVersion", "remediationAction"]:
+  for item in ["deploymentVersion", "remediationAction", "deploymentName", "deploymentProject"]:
     if module.params[item]:
       params[item] = module.params[item]
 
-  attachRules = {}
-  attachRules["entityIds"] = module.params["entity_id"]
   params["eventType"] = "CUSTOM_DEPLOYMENT"
+  
+  ### parse attach rules
+  attachRules={}
+  attachRulesVars = module.params['attach_rules']
+  # TODO check if attach_rules are not provided in the correct format!
+  attachRulesVars = ast.literal_eval(module.params['attach_rules'])
+
+  #if ("entity_ids", "tagRule") not in attachRulesVars:
+  #  module.fail_json(msg="Attach rules are missing. Please refer to https://www.dynatrace.com/support/help/dynatrace-api/events/how-do-i-push-events-from-3rd-party-systems/")
+  
+
+  entityIdsArr={}
+  if "entity_ids" in attachRulesVars:
+    entityIdsArr=attachRulesVars["entity_ids"].split(',')
+    attachRules["entityIds"] = entityIdsArr
+
+  tagRule={}
+  if "tagRule" in attachRulesVars:
+    tagRule=attachRulesVars["tagRule"]
+    attachRules["tagRule"] = tagRule
+
+ 
+  #module.fail_json(msg=attachRulesVars)
+      
+  
+  
+
   params["attachRules"] = attachRules
-  params["deploymentName"] = "Update"
-  params["deploymentProject"] = "My Project"
   params["source"] = "Ansible"
+  #if "source" in module.params and module.params["source"] != null:
+  #  params["source"] = module.params["source"]
+  
   #params["customProperies"] = TODO if needed
 
-	
+  #module.fail_json(msg=params)
 
   # If we're in check mode, just exit pretending like we succeeded
   if module.check_mode:
     module.exit_json(changed=True)
 
   # Send the deployment info to Dynatrace
-  dt_url = module.params["tenant_url"] + "/api/v1/events/?Api-Token=" + module.params["api_token"]
+  dt_url = module.params["tenant_url"] + "/api/v1/events/" #?Api-Token=" + module.params["api_token"]
   #data = urlencode(params)
   headers = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Authorization': 'Api-Token ' + module.params['api_token']
   }
   
   #module.fail_json(msg=json.dumps(params))
@@ -117,7 +158,8 @@ def main():
     response, info = fetch_url(module, dt_url, data=json.dumps(params), headers=headers)
     
     if info['status'] in (200, 201):
-      module.exit_json(changed=True,meta=info)
+      #module.exit_json(changed=True,meta=info)
+      module.exit_json(changed=True)
     elif info['status'] == 401:
       module.fail_json(msg="Token Authentification failed.")
     else:
