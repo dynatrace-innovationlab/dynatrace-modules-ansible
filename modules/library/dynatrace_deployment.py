@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright 2018 Aaron Huslage (Red Hat) / Juergen Etzlstorfer (Dynatrace) <ahuslage@redhat.com> <juergen.etzlstorfer@dynatrace.com>
+# Copyright 2018 Juergen Etzlstorfer (Dynatrace) <juergen.etzlstorfer@dynatrace.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
+ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
@@ -18,9 +18,9 @@ DOCUMENTATION = '''
 module: dynatrace_deployment
 version_added: "1.2"
 author: "Juergen Etzlstorfer (@jetzlstorfer)"
-short_description: Notify Dynatrace about app deployments
+short_description: Notify Dynatrace about application deployments
 description:
-   - Notify Dynatrace about app deployments (see https://www.dynatrace.com/support/help/dynatrace-api/events/how-do-i-push-events-from-3rd-party-systems/)
+   - Push deployment information to Dynatrace (see https://www.dynatrace.com/support/help/dynatrace-api/events/how-do-i-push-events-from-3rd-party-systems/)
 options:
   tenant_url:
     description:
@@ -42,14 +42,6 @@ options:
     description:
       - A remediation action in case Dynatrace detects issues related to this deployment
     required: false
-  validate_certs:
-    description:
-      - If C(no), SSL certificates will not be validated. This should only be used
-        on personally controlled sites using self-signed certificates.
-    required: false
-    default: 'yes'
-    type: bool
-    version_added: 1.5.1
 
 requirements: []
 '''
@@ -58,7 +50,7 @@ EXAMPLES = '''
 - dynatrace_deployment:
     tenant_url: https://mytenant.live.dynatrace.com
     api_token: XXXXXXXX
-    entity_id: APPLICATION-XXXXXXXXXX
+    entity_id: ENTITLY_TYPE-ENTITY_ID
     deploymentVersion: '2.0'
 '''
 
@@ -80,8 +72,7 @@ def main():
           api_token=dict(required=True),
           entity_id=dict(required=True),
           deploymentVersion=dict(required=False),
-          remediationAction=dict(required=False),
-          validate_certs=dict(default='yes', type='bool'),
+          remediationAction=dict(required=False)
       ),
       # required_one_of=[['app_name', 'application_id']],
       supports_check_mode=True
@@ -133,7 +124,7 @@ def main():
       module.fail_json(msg="Unable to send deployment event to Dynatrace: %s" % info)
   except:
     e = get_exception()
-    module.fail_json(msg="Failure:")
+    module.fail_json(msg="Failure: ")
 
 if __name__ == '__main__':
     main()

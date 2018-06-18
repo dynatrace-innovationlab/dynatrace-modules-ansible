@@ -1,0 +1,11 @@
+- hosts: localhost
+  tasks:
+    - name: Test my dynatrace module
+      dynatrace_deployment:
+        tenant_url: 'ENTER URL'
+        api_token: 'ENTER TOKEN HERE'
+        entity_id: 'ENTER SERVICE ID'
+        deploymentVersion: '2.0'
+      register: result
+
+    - debug: var=result 
