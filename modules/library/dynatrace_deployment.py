@@ -92,12 +92,8 @@ def main():
       supports_check_mode=True
   )
 
-    # build list of params
+  # build list of params
   params = {}
-  # if module.params["entity_ids"]:
-  #   params["entity_ids"] = module.params["entity_ids"]
-  # else:
-  #   module.fail_json(msg="entity_ids must be set")
 
   for item in ["deploymentVersion", "remediationAction", "deploymentName", "deploymentProject"]:
     if module.params[item]:
