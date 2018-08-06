@@ -3,7 +3,7 @@
 Send deployment information from deployments with Ansible directly to Dyntrace as custom deployment event information.
 
 
-## Usage
+## Usage in a playbook
 
 ```
 dynatrace_deployment:

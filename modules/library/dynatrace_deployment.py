@@ -120,6 +120,11 @@ def main():
   if "tagRule" in attachRulesVars:
     tagRule=attachRulesVars["tagRule"]
     attachRules["tagRule"] = tagRule
+    #module.fail_json(msg="tagrule found")
+    #if ("tags") in tagRule:
+    #  tags = tagRule['tags']
+    #  module.fail_json(msg="tags found: " + json.dumps(tags))
+
 
  
   #module.fail_json(msg=attachRulesVars)
@@ -148,8 +153,13 @@ def main():
     'Authorization': 'Api-Token ' + module.params['api_token']
   }
   
+  ###### FAIL FOR DEBUG PURPOSES - TO INSPECT PAYLOAD #####
   #module.fail_json(msg=json.dumps(params))
-
+  #########################################################
+  
+  ####
+  # SEND DEPLOYMENT EVENT TO DYNATRACE
+  ####
   try:
     response, info = fetch_url(module, dt_url, data=json.dumps(params), headers=headers)
     
