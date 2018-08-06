@@ -1,0 +1,92 @@
+- hosts: localhost
+  tasks:
+
+    - name: Test dynatrace attach rules
+      dynatrace_deployment:
+        tenant_url: 'your-url'
+        api_token: 'your-token'
+        attach_rules:
+          tagRule: 
+            meTypes: 'HOST'
+            tags: 'ansible-deployment'
+        deploymentVersion: '2.0'
+        deploymentName: 'my name'
+      register: result
+
+    - debug: var=result 
+
+
+    - name: Test dynatrace deployment entity ids
+      dynatrace_deployment:
+        tenant_url: 'your-url'
+        api_token: 'your-token'
+        attach_rules:
+          entity_ids: 'SERVICE-FEF50497752EF96E,HOST-7CAE7FEDC34688F8'
+        deploymentVersion: '2.0'
+        deploymentName: 'my name'
+        deploymentProject: 'my project'
+        source: 'my source'
+      register: result
+
+    - debug: var=result 
+
+    
+    - name: Test tag on service only
+      dynatrace_deployment:
+        tenant_url: 'your-url'
+        api_token: 'your-token'
+        attach_rules:
+          tagRule:
+            meTypes: 'SERVICE'
+            tags: 'ansible-deployment'
+        deploymentVersion: '2.0'
+        deploymentName: 'my name'
+        deploymentProject: 'my project'
+        source: 'my source'
+      register: result
+    - debug: var=result 
+
+    - name: Test tag with value only
+      dynatrace_deployment:
+        tenant_url: 'your-url'
+        api_token: 'your-token'
+        attach_rules:
+          tagRule:
+            -
+              meTypes: ['SERVICE']
+              tags: 
+              -
+                context: 'CONTEXTLESS'
+                key: 'Deployment'
+                value: '10.1.0.5:80'
+            -
+              meTypes: ['HOST']
+              tags:
+              -
+                context: 'CONTEXTLESS'
+                key: 'AnsibleTest'
+                value: '10.1.0.5'
+
+        deploymentVersion: '2.0'
+        deploymentName: 'my name'
+        deploymentProject: 'my project'
+        source: 'my source'
+      register: result
+      tags: testunit
+    - debug: var=result 
+
+
+    - name: Test missing attach rules
+      dynatrace_deployment:
+        tenant_url: 'your-url'
+        api_token: 'your-token'
+        attach_rules:
+          entity_ids: ''
+        deploymentVersion: '2.0'
+        deploymentName: 'my name'
+        deploymentProject: 'my project'
+        source: 'my source'
+      register: result
+
+    - debug: var=result 
+
