@@ -18,7 +18,7 @@ DOCUMENTATION = '''
 module: dynatrace_deployment
 version_added: "1.2"
 author: "Juergen Etzlstorfer (@jetzlstorfer)"
-short_description: Notify Dynatrace about application deployments
+short_description: Notify Dynatrace about new deployments
 description:
    - Push deployment information to Dynatrace (see https://www.dynatrace.com/support/help/dynatrace-api/events/how-do-i-push-events-from-3rd-party-systems/)
 options:
@@ -59,7 +59,10 @@ EXAMPLES = '''
     tenant_url: https://mytenant.live.dynatrace.com
     api_token: XXXXXXXX
     attach_rules:
-      entity_ids: ENTITY_TYPE-ENTITY_ID
+      tagRule:
+        meTypes: 'SERVICE'
+        tags: 'my-service-tag'
+    remediationAction: 'url-to-remediation'
     deploymentVersion: '2.0'
 '''
 
@@ -81,12 +84,12 @@ def main():
           tenant_url=dict(required=True),
           api_token=dict(required=True),
           attach_rules=dict(required=True),
-          #entity_ids=dict(required=False),
           deploymentVersion=dict(required=True),
           deploymentName=dict(required=True),
           deploymentProject=dict(required=False),
           source=dict(required=False),
-          remediationAction=dict(required=False)
+          remediationAction=dict(required=False),
+          customProperties=dict(required=False)
       ),
       # required_one_of=[['app_name', 'application_id']],
       supports_check_mode=True
@@ -95,7 +98,7 @@ def main():
   # build list of params
   params = {}
 
-  for item in ["deploymentVersion", "remediationAction", "deploymentName", "deploymentProject"]:
+  for item in ["deploymentVersion", "remediationAction", "deploymentName", "deploymentProject", "source", "customProperties"]:
     if module.params[item]:
       params[item] = module.params[item]
 
@@ -103,13 +106,7 @@ def main():
   
   ### parse attach rules
   attachRules={}
-  attachRulesVars = module.params['attach_rules']
-  # TODO check if attach_rules are not provided in the correct format!
   attachRulesVars = ast.literal_eval(module.params['attach_rules'])
-
-  #if ("entity_ids", "tagRule") not in attachRulesVars:
-  #  module.fail_json(msg="Attach rules are missing. Please refer to https://www.dynatrace.com/support/help/dynatrace-api/events/how-do-i-push-events-from-3rd-party-systems/")
-  
 
   entityIdsArr={}
   if "entity_ids" in attachRulesVars:
@@ -120,26 +117,20 @@ def main():
   if "tagRule" in attachRulesVars:
     tagRule=attachRulesVars["tagRule"]
     attachRules["tagRule"] = tagRule
-    #module.fail_json(msg="tagrule found")
-    #if ("tags") in tagRule:
-    #  tags = tagRule['tags']
-    #  module.fail_json(msg="tags found: " + json.dumps(tags))
-
-
- 
-  #module.fail_json(msg=attachRulesVars)
-      
-  
-  
 
   params["attachRules"] = attachRules
-  params["source"] = "Ansible"
-  #if "source" in module.params and module.params["source"] != null:
+  if "source" not in params:
+    params["source"] = "Ansible"
+  #if "source" in module.params and module.params["source"] is not None:
   #  params["source"] = module.params["source"]
   
-  #params["customProperies"] = TODO if needed
 
-  #module.fail_json(msg=params)
+  
+  customProperties={}
+  if params["customProperties"]:
+    customPropsArr = ast.literal_eval(module.params['customProperties'])
+    params["customProperties"] = customPropsArr
+
 
   # If we're in check mode, just exit pretending like we succeeded
   if module.check_mode:
