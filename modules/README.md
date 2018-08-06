@@ -1,6 +1,21 @@
 # Dynatrace Deployment Module
 
+Send deployment information from deployments with Ansible directly to Dyntrace as custom deployment event information.
+
+
 ## Usage
+
+```
+dynatrace_deployment:
+  tenant_url: 'https://your-url.com'
+  api_token: 'your-api-token'
+  attach_rules:
+    tagRule: 
+      meTypes: 'SERVICE'
+      tags: 'ansible-deployment'
+  deploymentVersion: '2.0'
+  deploymentName: 'my name'
+```
 
 ## Structure
 
