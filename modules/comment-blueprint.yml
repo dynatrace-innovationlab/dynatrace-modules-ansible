@@ -1,0 +1,12 @@
+- hosts: localhost
+  tasks:
+    - name: Test dynatrace comment
+      dynatrace_commentt:
+        tenant_url: 'ENTER URL'
+        api_token: 'ENTER TOKEN HERE'
+        problem_id: 'ENTER PROBLEM ID'
+        comment: 'comment text'
+        user: 'your user'
+      register: result
+
+    - debug: var=result 
