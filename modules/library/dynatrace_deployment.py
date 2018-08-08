@@ -16,7 +16,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 DOCUMENTATION = '''
 ---
 module: dynatrace_deployment
-version_added: "1.2"
+version_added: "X.X"
 author: "Juergen Etzlstorfer (@jetzlstorfer)"
 short_description: Notify Dynatrace about new deployments
 description:
@@ -161,9 +161,8 @@ def main():
       module.fail_json(msg="Token Authentification failed.")
     else:
       module.fail_json(msg="Unable to send deployment event to Dynatrace: %s" % info)
-  except:
-    e = get_exception()
-    module.fail_json(msg="Failure: ")
+  except Exception as e:
+    module.fail_json(msg="Failure: " + e.message)
 
 if __name__ == '__main__':
     main()
