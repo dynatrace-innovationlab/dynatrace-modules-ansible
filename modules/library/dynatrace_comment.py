@@ -30,6 +30,10 @@ options:
     description:
       - Dynatrace API Token
     required: true
+  problem_id:
+    description:
+      - Dynatrace Problem ID to add the comment to
+    required: true
   comment: 
     description:
       - Content of comment to push to Dynatrace
@@ -57,8 +61,7 @@ EXAMPLES = '''
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url
 from ansible.module_utils.six.moves.urllib.parse import urlencode
-#import ast
-#import json
+import json
 
 # ===========================================
 # Module execution.
@@ -71,28 +74,23 @@ def main():
       argument_spec=dict(
           tenant_url=dict(required=True),
           api_token=dict(required=True),
+          problem_id=dict(required=True),
           comment=dict(required=True),
           user=dict(required=True),
           context=dict(required=False)
       ),
-      # required_one_of=[['app_name', 'application_id']],
       supports_check_mode=True
   )
 
   # build list of params
   params = {}
 
+  # set standard context
   params["context"] = "Ansible"
 
   for item in ["comment", "user", "context"]:
     if module.params[item]:
       params[item] = module.params[item]
-
-  #if "context" not in params:
-  #  params["context"] = "Ansible"
-  
-
-
 
   # If we're in check mode, just exit pretending like we succeeded
   if module.check_mode:
@@ -123,9 +121,8 @@ def main():
       module.fail_json(msg="Token Authentification failed.")
     else:
       module.fail_json(msg="Unable to send comment to Dynatrace: %s" % info)
-  except:
-    e = get_exception()
-    module.fail_json(msg="Failure: ")
+  except Exception as e:
+    module.fail_json(msg="Failure: " + e.message)
 
 if __name__ == '__main__':
     main()
