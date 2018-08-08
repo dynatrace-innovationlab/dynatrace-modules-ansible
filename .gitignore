@@ -1,5 +1,5 @@
 .vscode/*
 module-path.txt
 modules/temp/
-modules/play-dynatrace.yml
+modules/*-dynatrace.yml
 *.retry
