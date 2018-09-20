@@ -127,7 +127,7 @@ def main():
 
   
   customProperties={}
-  if params["customProperties"]:
+  if module.params["customProperties"]:
     customPropsArr = ast.literal_eval(module.params['customProperties'])
     params["customProperties"] = customPropsArr
 
