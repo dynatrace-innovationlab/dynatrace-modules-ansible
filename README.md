@@ -1,38 +1,63 @@
-Role Name
-=========
+# Dynatrace Modules
 
-A brief description of the role goes here.
+This project consists of two modules that send either deployment information or comments for a problem ticket to Dynatrace.
 
-Requirements
-------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+### Deployment
 
-Role Variables
---------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Send deployment information from deployments with Ansible directly to Dyntrace as custom deployment event information.
 
-Dependencies
-------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+Usage:
+```yaml
+dynatrace_deployment:
+  tenant_url: 'https://your-url.com'
+  api_token: 'your-api-token'
+  attach_rules:
+    tagRule: 
+      meTypes: 'SERVICE'
+      tags: 'ansible-deployment'
+  deploymentVersion: '2.0'
+  deploymentName: 'my name'
+```
 
-Example Playbook
-----------------
+### Comments
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Send a comment to a Dynatrace problem ticket with Ansible.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+Usage:
+```yaml
+dynatrace_comment:
+  tenant_url: 'https://your-url.com'
+  api_token: 'your-api-token'
+  problem_id: 'xxxx'
+  comment: 'Problem remediation started'
+  user: 'juergen'
+```
 
-License
--------
 
-BSD
 
-Author Information
-------------------
+## Structure
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```
+test-deployment.yml
+test-comment.yml
+[library]
+  ↳ dynatrace_deployment.py
+  ↳ dynatrace_comment.py
+```
+
+## Run tests
+
+Put Dynatrace module in a library folder and a `playbook` file in the parent folder.
+Then start the sample `playbook` from the bash. This will automatically load the modules from the `library` folder.
+Add ```-v``` or ```-vvv``` for verbose debugging output.
+
+```
+$ ansible-playbook test-deployment.yml
+$ ansible-playbook test-comment.yml -vvv 
+```
+
+
+
