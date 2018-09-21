@@ -2,4 +2,5 @@
 module-path.txt
 modules/temp/
 modules/*-dynatrace.yml
+/*-dynatrace.yml
 *.retry
